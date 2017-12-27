@@ -1,5 +1,24 @@
+
 # search and replace noiseJob to your job name
-# all values can be set in this value, no need to edit this template
+#
+# can be used as-is, set the following helm values:
+#
+# global:
+#   environmentName: staging
+#   opsRepoSlug: orihoch/sk8s
+#   opsRepoBranch: master
+# noise:
+#   name: noise
+#   # schedule: "@daily"
+#   nodePool: default-pool
+#   image: orihoch/sk8s-pipelines
+#   pipelinesScript: dpp run ./noise
+#   # secretEnvFrom: secret-env-vars
+#   GS_BUCKET_NAME: sk8s-pipelines-data
+#   OUTPUT_PATH_PREFIX: noise-
+#   # INITIAL_SYNC_SCRIPT: gsutil -m rsync -r gs://sk8s-pipelines-data/noise-2017-12-06/ /pipelines/data/
+#   opsSecretName: ops
+
 {{ if .Values.enabled }}{{ if .Values.noiseJob }}
 apiVersion: batch/v1
 kind: Job
@@ -46,6 +65,10 @@ spec:
         env:
         - name: K8S_ENVIRONMENT
           value: {{ .Values.global.environmentName }}
+        - name: OPS_REPO_SLUG
+          value: {{ .Values.global.opsRepoSlug }}
+        - name: OPS_REPO_BRANCH
+          value: {{ .Values.global.opsRepoBranch }}
         - name: GS_BUCKET_NAME
           value: {{ .Values.noiseJob.GS_BUCKET_NAME | quote }}
         - name: OUTPUT_PATH_PREFIX
