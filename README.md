@@ -1,6 +1,13 @@
 # sk8s-pipelines
 
-## Running
+simplify usage of [datapackage pipelines](https://github.com/frictionlessdata/datapackage-pipelines) based scripts from [sk8s](https://github.com/orihoch/sk8s) environments
+
+Provides a template project for pipelines based jobs which can run as kubernetes jobs or scheduled jobs
+
+Pipelines code is based on saving to / loading from local filesystem. Kubernetes sync container handles syncing to google storage.
+
+
+## Running the local pipelines code
 
 Install some dependencies (the following should work on recent versions of Ubuntu / Debian)
 
