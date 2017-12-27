@@ -6,6 +6,10 @@ Provides a template project for pipelines based jobs which can run as kubernetes
 
 Pipelines code is based on saving to / loading from local filesystem. Kubernetes sync container handles syncing to google storage.
 
+Docker images:
+
+* `orihoch/sk8sops:pipelines-google-storage-sync` - sk8s environment ops container which syncs to/from google storage, see [google-storage-sync/README.md](google-storage-sync/README.md)
+
 
 ## Running the local pipelines code
 
