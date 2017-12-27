@@ -1,0 +1,26 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[packages]
+
+setuptools = "*"
+distribute = "*"
+"datapackage-pipelines[speedup]" = "*"
+pyquery = "*"
+
+
+[dev-packages]
+
+tox = "*"
+pytest = "*"
+ipdb = "*"
+ipython = "*"
+
+
+[requires]
+
+python_version = "3.6"

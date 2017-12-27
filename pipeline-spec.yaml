@@ -1,0 +1,8 @@
+noise:
+  pipeline:
+  - run: noise
+#    parameters:
+#      num-rows: 50
+  - run: dump.to_path
+    parameters:
+      out-path: data/noise

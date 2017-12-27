@@ -99,3 +99,10 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+run_docker_ops.sh
+secret*
+.dpp.db
+.code
+data
+.idea
