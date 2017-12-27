@@ -12,7 +12,7 @@ docker run -it -v "`readlink -f ../project-k8s-repo/secret-k8s-ops.json`:/k8s-op
                -e K8S_ENVIRONMENT=staging \
                -e OPS_REPO_SLUG=project/k8s-repo-slug \
                -e OPS_REPO_BRANCH=master \
-               -e GS_BUCKET_NAME=bucket-name-for-sync-source-and-output \
+               -e GS_BUCKET_NAME=bucket-name \
                -e OUTPUT_PATH_PREFIX=testing-123 \
                sk8s-pipelines-google-storage-sync
 ```
