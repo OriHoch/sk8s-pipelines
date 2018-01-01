@@ -1,0 +1,55 @@
+#apiVersion: batch/v1
+#kind: Job
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: amplified-noise
+spec:
+  schedule: "@daily"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: amplified-noise
+        spec:
+          containers:
+          - name: pipelines
+            image: orihoch/sk8s-pipelines@sha256:e89833818cef4f014b523ba1bedc074f060a78d2d16074459640149ef597b538
+            command:
+            - bash
+            - "-c"
+            - |
+              while ! [ -e /pipelines/data/synced ]; do sleep 5 && echo .; done && rm -f /pipelines/data/synced &&\
+              dpp run ./amplify &&\
+              touch /pipelines/data/done
+            volumeMounts: [{"name": "data", "mountPath": "/pipelines/data"}]
+          - name: ops
+            image: orihoch/sk8sops:pipelines-gcs@sha256:a6e8f94c2e68fc8da552abcbdac865763d40e79895b87ff06a98ebd588070cf0
+            resources: {"requests": {"cpu": "0.01", "memory": "100Mi"}}
+            env:
+            - name: CLOUDSDK_CORE_PROJECT
+              value: uumpa123
+            - name: GS_BUCKET_NAME
+              value: sk8s-pipelines
+            - name: OUTPUT_PATH_PREFIX
+              value: tests/
+            - name: INITIAL_SYNC_SCRIPT
+              value: eval `gsutil cat gs://sk8s-pipelines/tests/metadata.env` && gsutil -m rsync -r "${LAST_SYNC_URL}" /pipelines/data/
+            - name: DISABLE_TIMESTAMP
+              value: "1"
+            volumeMounts:
+            - name: data
+              mountPath: /pipelines/data
+            - name: k8s-ops
+              mountPath: /k8s-ops
+              readOnly: true
+          volumes:
+          # this is the k8s ops secret, see https://github.com/OriHoch/sk8s-ops/blob/master/README.md#secrets
+          - name: k8s-ops
+            secret:
+              secretName: ops
+          # empty dir is stored on host and shared between all container in pod, we use it to sync data between the pods
+          - name: data
+            emptyDir: {}
+          restartPolicy: Never
