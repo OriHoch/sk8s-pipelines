@@ -18,22 +18,7 @@ This project contains a sample pipeline called `noise` - which generates some no
 The pipelines are defined in the `pipeline-spec.yaml` file. Each step's `run` attribute can point to a local python file implementing the datapackage pipelines processor interface, see `noise.py` for an example.
 
 
-## Running the pipelines using docker
-
-Install recent version of [Docker](https://docs.docker.com/engine/installation/) and [Docker Compose](https://docs.docker.com/compose/install/).
-
-List available pipelines
-
-`docker-compose run pipelines`
-
-Run a pipeline
-
-`docker-compose run pipelines run <PIPELINE_ID>`
-
-Data is available locally under `data` directory
-
-
-## Running the pipelines locally
+## Running the pipelines
 
 Install some dependencies (the following should work on recent versions of Ubuntu / Debian)
 
