@@ -15,7 +15,7 @@ spec:
         spec:
           containers:
           - name: pipelines
-            image: orihoch/sk8s-pipelines@sha256:c232fcbd4ffff456b9cb9312a4b7d62cec8c0fe6b36bf31e50625a618f129746
+            image: orihoch/sk8s-pipelines@sha256:e89833818cef4f014b523ba1bedc074f060a78d2d16074459640149ef597b538
             command:
             - bash
             - "-c"
@@ -25,7 +25,7 @@ spec:
               touch /pipelines/data/done
             volumeMounts: [{"name": "data", "mountPath": "/pipelines/data"}]
           - name: ops
-            image: orihoch/sk8sops:pipelines-gcs@sha256:a6e8f94c2e68fc8da552abcbdac865763d40e79895b87ff06a98ebd588070cf0
+            image: orihoch/sk8sops:pipelines-gcs@sha256:c232fcbd4ffff456b9cb9312a4b7d62cec8c0fe6b36bf31e50625a618f129746
             resources: {"requests": {"cpu": "0.01", "memory": "100Mi"}}
             env:
             - name: CLOUDSDK_CORE_PROJECT
