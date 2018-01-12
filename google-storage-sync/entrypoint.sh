@@ -52,5 +52,9 @@ echo "pipelines complete, syncing to ${SYNC_URL}"
 
 ! gsutil cp "${METADATA_FILE}" "${METADATA_URL}" && echo "failed to copy metadata to bucket ${GS_BUCKET_NAME}" && exit 1
 
+echo
 echo "Great Success"
+echo
+echo "https://console.cloud.google.com/storage/browser/${SYNC_URL}?project=${CLOUDSDK_CORE_PROJECT}"
+echo
 exit 0
