@@ -3,17 +3,17 @@ steps:
 #- name: gcr.io/cloud-builders/docker
 #  args:
 #  - pull
-#  - "gcr.io/${_CLOUDSDK_CORE_PROJECT}/${_PROJECT_NAME}-latest"
+#  - "gcr.io/${_CLOUDSDK_CORE_PROJECT}-public/${_PROJECT_NAME}-latest"
 - name: gcr.io/cloud-builders/docker
   args:
   - build
-  - "--cache-from"
-  - "gcr.io/${_CLOUDSDK_CORE_PROJECT}/${_PROJECT_NAME}-latest"
+#  - "--cache-from"
+#  - "gcr.io/${_CLOUDSDK_CORE_PROJECT}-public/${_PROJECT_NAME}-latest"
   - "-t"
-  - "gcr.io/${_CLOUDSDK_CORE_PROJECT}/${_PROJECT_NAME}-latest"
+  - "gcr.io/${_CLOUDSDK_CORE_PROJECT}-public/${_PROJECT_NAME}-latest"
   - "-t"
   - "${_IMAGE_TAG}"
   - "."
 images:
-- "gcr.io/${_CLOUDSDK_CORE_PROJECT}/${_PROJECT_NAME}-latest"
+- "gcr.io/${_CLOUDSDK_CORE_PROJECT}-public/${_PROJECT_NAME}-latest"
 - "${_IMAGE_TAG}"
