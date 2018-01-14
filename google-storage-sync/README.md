@@ -3,6 +3,11 @@
 This image supports sync of data to/from google storage using a google service account.
 
 
+Docker Images:
+* `docker pull gcr.io/uumpa-public/sk8s-google-storage-sync-latest`
+* `docker pull gcr.io/uumpa-public/sk8s-google-storage-sync:<COMMIT_SHA_OR_TAG_NAME>`
+
+
 ## Prerequisites
 
 * Google Service Account secret json key, see [Creating a new service account with full permissions and related key file](https://github.com/OriHoch/sk8s-ops#creating-a-new-service-account-with-full-permissions-and-related-key-file)

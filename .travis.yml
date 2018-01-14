@@ -2,8 +2,8 @@ language: bash
 sudo: required
 env:
   matrix:
-  - BUILD_PATH=/pwd CLOUDSDK_CORE_PROJECT=uumpa123 PROJECT_NAME=sk8s-pipelines DEPLOY_BRANCH=master DEPLOY_ENVIRONMENT=_
-  - BUILD_PATH=/pwd/google-storage-sync CLOUDSDK_CORE_PROJECT=uumpa-public PROJECT_NAME=sk8s-google-storage-sync DEPLOY_BRANCH=master DEPLOY_ENVIRONMENT=_
+  - BUILD_PATH=/pwd CLOUDSDK_CORE_PROJECT=uumpa123 PROJECT_NAME=sk8s-pipelines DEPLOY_BRANCH=master DEPLOY_TAGS=true DEPLOY_ENVIRONMENT=_
+  - BUILD_PATH=/pwd/google-storage-sync CLOUDSDK_CORE_PROJECT=uumpa-public PROJECT_NAME=sk8s-google-storage-sync DEPLOY_BRANCH=master DEPLOY_TAGS=true DEPLOY_ENVIRONMENT=_
 services:
 - docker
 script:
@@ -12,6 +12,8 @@ script:
      ([ "${TRAVIS_BRANCH}" == "${DEPLOY_BRANCH}" ] || ([ "${DEPLOY_TAGS}" == "true" ] && [ "${TRAVIS_TAG}" != "" ])) &&\
      ! echo "${TRAVIS_COMMIT_MESSAGE}" | grep -- --no-deploy
   then
+      # tar cvf secret-k8s-ops-jsons.tar ./secret-k8s-ops.json ./secret-uumpa-public-k8s-ops.json
+      # travis encrypt-file secret-k8s-ops-jsons.tar k8s-ops-jsons-secret.tar.enc
       openssl aes-256-cbc -K $encrypted_11bb5fe03766_key -iv $encrypted_11bb5fe03766_iv -in k8s-ops-jsons-secret.tar.enc -out secret-k8s-ops-jsons.tar -d
       tar xvf secret-k8s-ops-jsons.tar
       if [ "${CLOUDSDK_CORE_PROJECT}" == "uumpa-public" ]; then
