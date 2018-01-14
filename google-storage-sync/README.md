@@ -32,7 +32,7 @@ docker run -it -v "`readlink -f data`:/pipelines/data" \
 You can do an initial sync from an existing google storage bucket before running the pipelines, add the following argument:
 
 ```
-               -e INITIAL_SYNC_SCRIPT="gsutil -m rsync -r gs://sk8s-pipelines/tests/2017-12-31-19-51/ /pipelines/data/"
+               -e INITIAL_SYNC_SCRIPT="gsutil -m rsync -x '^done|synced$' -r gs://sk8s-pipelines/tests/2017-12-31-19-51/ /pipelines/data/"
 ```
 
 The google storage sync container will start and wait for pipelines to run

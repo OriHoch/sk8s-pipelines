@@ -3,13 +3,10 @@ sudo: required
 env:
   global:
   - OPENSSL_CMD="openssl aes-256-cbc -K $encrypted_11bb5fe03766_key -iv $encrypted_11bb5fe03766_iv -in ./k8s-ops-secret.json.enc -out ./secret-k8s-ops.json -d"
-  - OPS_REPO_SLUG=OriHoch/sk8s
-  - OPS_REPO_BRANCH=master
-  - CLOUDSDK_CORE_PROJECT=uumpa123
-  - PROJECT_NAME=sk8s-pipelines
+  - OPENSSL_CMD_UUMPA_PUBLIC="openssl aes-256-cbc -K $encrypted_11bb5fe03766_key -iv $encrypted_11bb5fe03766_iv -in ./uumpa-public-k8s-ops-secret.json -out ./secret-uumpa-public-k8s-ops.json -d"
   matrix:
-  - DEPLOY_ENVIRONMENT=staging DEPLOY_BRANCH=master
-#  - DEPLOY_ENVIRONMENT=production DEPLOY_TAGS=true
+  - BUILD_PATH=/pwd CLOUDSDK_CORE_PROJECT=uumpa123 PROJECT_NAME=sk8s-pipelines DEPLOY_BRANCH=master DEPLOY_ENVIRONMENT=_
+  - BUILD_PATH=/pwd/google-storage-sync CLOUDSDK_CORE_PROJECT=uumpa-public PROJECT_NAME=sk8s-google-storage-sync DEPLOY_BRANCH=master DEPLOY_ENVIRONMENT=_
 services:
 - docker
 script:
@@ -18,29 +15,32 @@ script:
      ([ "${TRAVIS_BRANCH}" == "${DEPLOY_BRANCH}" ] || ([ "${DEPLOY_TAGS}" == "true" ] && [ "${TRAVIS_TAG}" != "" ])) &&\
      ! echo "${TRAVIS_COMMIT_MESSAGE}" | grep -- --no-deploy
   then
-      $OPENSSL_CMD
-      if [ "${TRAVIS_TAG}" != "" ]; then
-          IMAGE_TAG="gcr.io/${CLOUDSDK_CORE_PROJECT}/${PROJECT_NAME}-tag:${TRAVIS_TAG}"
+      if [ "${CLOUDSDK_CORE_PROJECT}" == "uumpa-public" ]; then
+        $OPENSSL_CMD_UUMPA_PUBLIC
+        SECRET_FILE="./secret-uumpa-public-k8s-ops.json"
       else
-          IMAGE_TAG="gcr.io/${CLOUDSDK_CORE_PROJECT}/${PROJECT_NAME}-cd:${TRAVIS_COMMIT}"
+        $OPENSSL_CMD
+        SECRET_FILE="./secret-k8s-ops.json"
       fi
-      B64_UPDATE_VALUES=`echo '{"'${PROJECT_NAME}'":{"image":"'${IMAGE_TAG}'"}}' | base64 -w0`
-      wget https://raw.githubusercontent.com/OriHoch/sk8s-ops/master/run_docker_ops.sh
-      chmod +x run_docker_ops.sh bin/continuous_deployment.sh
-      if ./run_docker_ops.sh "${DEPLOY_ENVIRONMENT}" "/pwd/continuous_deployment.sh" \
-                            "orihoch/sk8s-ops" "${OPS_REPO_SLUG}" "${OPS_REPO_BRANCH}" "" "
-                            -v `pwd`:/pwd
-                            -e B64_UPDATE_VALUES=${B64_UPDATE_VALUES}
-                            -e K8S_OPS_GITHUB_REPO_TOKEN=${K8S_OPS_GITHUB_REPO_TOKEN}
-                            -e OPS_REPO_SLUG=${OPS_REPO_SLUG}
-                            -e OPS_REPO_BRANCH=${OPS_REPO_BRANCH}
-                            -e B64_UPDATE_VALUES=${B64_UPDATE_VALUES}
-                            -e IMAGE_TAG=${IMAGE_TAG}
-                            -e CLOUDSDK_CORE_PROJECT=${CLOUDSDK_CORE_PROJECT}
-                            -e PROJECT_NAME=${PROJECT_NAME}"; then
+      IMAGE_TAG="gcr.io/${CLOUDSDK_CORE_PROJECT}/${PROJECT_NAME}:${TRAVIS_TAG:-$TRAVIS_COMMIT}"
+      CLOUDBUILD_SUBSTITUTIONS="_IMAGE_TAG=${IMAGE_TAG},_CLOUDSDK_CORE_PROJECT=${CLOUDSDK_CORE_PROJECT},_PROJECT_NAME=${PROJECT_NAME}"
+      if docker run -v `readlink -f ${SECRET_FILE}`:/k8s-ops/secret.json \
+                    -v `pwd`:/pwd orihoch/sk8s-ops \
+                    -c '
+          RES=0;
+          ERROR="";
+          ! gcloud auth activate-service-account --key-file=/k8s-ops/secret.json \
+            && echo "failed to activate service account" && exit 1;
+          ! gcloud config set project '${CLOUDSDK_CORE_PROJECT}' \
+            && echo "failed to set project '${CLOUDSDK_CORE_PROJECT}'" && exit 1;
+          ! gcloud container builds submit --substitutions "'${CLOUDBUILD_SUBSTITUTIONS}'" '$BUILD_PATH' --config /pwd/cloudbuild-gcr-docker-cache.yaml \
+            && ERROR="failed to build image" && RES=1;
+          echo $ERROR;
+          exit $RES;
+      '; then
         true
       else
-        echo "failed to run docker ops"
+        echo "Failed to run docker ops"
         false
       fi
   else

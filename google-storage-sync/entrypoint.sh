@@ -47,7 +47,7 @@ rm -f /pipelines/data/done
 
 echo "pipelines complete, syncing to ${SYNC_URL}"
 
-! gsutil -m rsync $SYNC_ARGS -r /pipelines/data "${SYNC_URL}" \
+! gsutil -m rsync -x '^done|synced$' $SYNC_ARGS -r /pipelines/data "${SYNC_URL}" \
     && echo "gsutil rsync failed" && exit 1
 
 ! gsutil cp "${METADATA_FILE}" "${METADATA_URL}" && echo "failed to copy metadata to bucket ${GS_BUCKET_NAME}" && exit 1
