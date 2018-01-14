@@ -1,9 +1,6 @@
 language: bash
 sudo: required
 env:
-  global:
-  - OPENSSL_CMD="openssl aes-256-cbc -K $encrypted_11bb5fe03766_key -iv $encrypted_11bb5fe03766_iv -in ./k8s-ops-secret.json.enc -out ./secret-k8s-ops.json -d"
-  - OPENSSL_CMD_UUMPA_PUBLIC="openssl aes-256-cbc -K $encrypted_11bb5fe03766_key -iv $encrypted_11bb5fe03766_iv -in ./uumpa-public-k8s-ops-secret.json -out ./secret-uumpa-public-k8s-ops.json -d"
   matrix:
   - BUILD_PATH=/pwd CLOUDSDK_CORE_PROJECT=uumpa123 PROJECT_NAME=sk8s-pipelines DEPLOY_BRANCH=master DEPLOY_ENVIRONMENT=_
   - BUILD_PATH=/pwd/google-storage-sync CLOUDSDK_CORE_PROJECT=uumpa-public PROJECT_NAME=sk8s-google-storage-sync DEPLOY_BRANCH=master DEPLOY_ENVIRONMENT=_
@@ -15,11 +12,11 @@ script:
      ([ "${TRAVIS_BRANCH}" == "${DEPLOY_BRANCH}" ] || ([ "${DEPLOY_TAGS}" == "true" ] && [ "${TRAVIS_TAG}" != "" ])) &&\
      ! echo "${TRAVIS_COMMIT_MESSAGE}" | grep -- --no-deploy
   then
+      openssl aes-256-cbc -K $encrypted_11bb5fe03766_key -iv $encrypted_11bb5fe03766_iv -in k8s-ops-jsons-secret.tar.enc -out secret-k8s-ops-jsons.tar -d
+      tar xvf secret-k8s-ops-jsons.tar
       if [ "${CLOUDSDK_CORE_PROJECT}" == "uumpa-public" ]; then
-        $OPENSSL_CMD_UUMPA_PUBLIC
         SECRET_FILE="./secret-uumpa-public-k8s-ops.json"
       else
-        $OPENSSL_CMD
         SECRET_FILE="./secret-k8s-ops.json"
       fi
       IMAGE_TAG="gcr.io/${CLOUDSDK_CORE_PROJECT}/${PROJECT_NAME}:${TRAVIS_TAG:-$TRAVIS_COMMIT}"
