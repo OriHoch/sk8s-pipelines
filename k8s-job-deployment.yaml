@@ -1,0 +1,81 @@
+# example of running job continuously as a deployment
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: continuous-noise
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: continuous-noise
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+      - name: pipelines
+        image: orihoch/sk8s-pipelines
+        resources: {"requests": {"cpu": "20m", "memory": "200Mi"}}
+        env:
+        - name: PIPELINES_SCRIPT
+          value: run_pipeline ./amplify
+        # optional - path which is shared between containers that depend on shared state
+        - name: STATE_PATH
+          value: /state
+        # optional - wait for the given filename to exist in the STATE_PATH before starting to run the pipelines
+        - name: INITIAL_SYNC_STATE_FILENAME
+          value: initial_sync_complete
+        # optional - write this filename in STATE_PATH to notify other containers that pipelines completed
+        - name: DONE_STATE_FILENAME
+          value: pipelines_complete
+        # optional - wait for this filename in STATE_PATH before exiting
+        - name: EXIT_STATE_FILENAME
+          value: exit
+        # metrics InfluxDB host
+        - name: METRICS_HOST
+          value: http://metrics-influxdb:8086
+        # metrics InfluxDB Database name (will be created if not exists)
+        - name: METRICS_DB
+          value: pipeline-jobs
+        # tags to apply for all metrics, the pipeline metric id will be appended
+        - name: METRICS_TAGS_PREFIX
+          value: ",environment={{ .Values.global.environmentName }},pipeline="
+        volumeMounts:
+        - name: data
+          mountPath: /pipelines/data
+        - name: state
+          mountPath: /state
+      - name: ops
+        image: gcr.io/uumpa-public/sk8s-google-storage-sync:v0.0.3b
+        resources: {"requests": {"cpu": "1m", "memory": "2Mi"}}
+        env:
+        - name: CLOUDSDK_CORE_PROJECT
+          value: uumpa123
+        - name: GS_BUCKET_NAME
+          value: sk8s-pipelines
+        - name: DELAY_EXIT_SECONDS
+          value: 120
+        - name: DATA_PATH
+          value: /pipelines/data
+        - name: STATE_PATH
+          value: /state
+        volumeMounts:
+        - name: data
+          mountPath: /pipelines/data
+        - name: state
+          mountPath: /state
+        - name: k8s-ops
+          mountPath: /k8s-ops
+          readOnly: true
+      volumes:
+      # this is the k8s ops secret, see https://github.com/OriHoch/sk8s-ops/blob/master/README.md#secrets
+      - name: k8s-ops
+        secret:
+          secretName: ops
+      # empty dir is stored on host and shared between all container in pod, we use it to sync data between the pods
+      - name: data
+        emptyDir: {}
+      - name: state
+        emptyDir: {}
