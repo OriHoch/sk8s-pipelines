@@ -43,25 +43,24 @@ if [ "${INITIAL_SYNC_STATE_FILENAME}" != "" ]; then
 fi
 
 send_metric running &
-if eval "${PIPELINES_SCRIPT}"; then
+eval "${PIPELINES_SCRIPT}"
+RES=$?
+if [ "${RES}" == "0" ]; then
     send_metric success &
-    if [ "${DONE_STATE_FILENAME}" != "" ]; then
-        echo "Updating done state"
-        touch "${STATE_PATH}/${DONE_STATE_FILENAME}"
-    fi
-    if [ "${EXIT_STATE_FILENAME}" != "" ]; then
-        send_metric wait_for_exit &
-        while ! [ -e "${STATE_PATH}/${EXIT_STATE_FILENAME}" ]; do
-            sleep ${EXIT_STATE_RETRY_INTERVAL_SECONDS:-60}
-        done
-        rm -f "${STATE_PATH}/${EXIT_STATE_FILENAME}" >/dev/null 2>&1
-    fi
-    send_metric exit_success
-    exit 0
 else
-    echo "some pipelines completed with error"
-    # see https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy
-    echo "exiting with error to let kubernetes retry"
-    send_metric exit_error
-    exit 1
+    send_metric failure &
 fi
+if [ "${DONE_STATE_FILENAME}" != "" ]; then
+    echo "Updating done state"
+    echo "${RES}" > "${STATE_PATH}/${DONE_STATE_FILENAME}"
+fi
+if [ "${EXIT_STATE_FILENAME}" != "" ]; then
+    send_metric wait_for_exit &
+    while ! [ -e "${STATE_PATH}/${EXIT_STATE_FILENAME}" ]; do
+        sleep ${EXIT_STATE_RETRY_INTERVAL_SECONDS:-60}
+    done
+    rm -f "${STATE_PATH}/${EXIT_STATE_FILENAME}" >/dev/null 2>&1
+fi
+# wait 1 second to let metrics get sent (they are sent asynchroneously)
+sleep 1
+exit $RES

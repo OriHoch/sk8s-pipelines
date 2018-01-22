@@ -82,9 +82,9 @@ test_metrics() {
                    -e METRICS_DB=pipelines
                    -e METRICS_TAGS_PREFIX=,environment=staging,pipeline=" &&\
     R=$(curl -sG 'http://localhost:8086/query' --data-urlencode "db=pipelines" \
-             --data-urlencode "q=SELECT * FROM \"exit_success\" WHERE \"environment\"='staging'") &&\
+             --data-urlencode "q=SELECT * FROM \"success\" WHERE \"environment\"='staging'") &&\
     echo "R=${R}" &&\
-    [ "$(echo $R | jq -r '.results[0].series[0].name')" == "exit_success" ] &&\
+    [ "$(echo $R | jq -r '.results[0].series[0].name')" == "success" ] &&\
     [ "$(echo $R | jq -r '.results[0].series[0].values[0][3]')" == "1" ] &&\
     [ "$(echo $R | jq -r '.results[0].series[0].values[2]')" == "null" ] &&\
     [ "$(echo $R | jq -r '.results[0].series[1]')" == "null" ] &&\
@@ -126,9 +126,9 @@ test_state() {
 sudo true
 
 docker build -t sk8s-pipelines .
-test_baseline
+#test_baseline
 test_metrics
-test_state
+#test_state
 
 echo "Great Success!"
 exit 0
