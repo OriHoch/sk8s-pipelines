@@ -23,12 +23,12 @@ send_metric(){
 run_pipeline() {
     PIPELINE_ID="${1}"
     PIPELINE_METRIC_ID="${PIPELINE_ID:-$2}"
-    send_metric pipeline_running ",pipeline=${PIPELINE_METRIC_ID}" &
+    send_metric pipeline_running "${PIPELINE_METRIC_ID}" &
     if dpp run "${PIPELINE_ID}"; then
-        send_metric pipeline_complete ",pipeline=${PIPELINE_METRIC_ID}" &
+        send_metric pipeline_complete "${PIPELINE_METRIC_ID}" &
         return 0
     else
-        send_metric pipeline_error ",pipeline=${PIPELINE_METRIC_ID}" &
+        send_metric pipeline_error "${PIPELINE_METRIC_ID}" &
         return 1
     fi
 }
@@ -39,7 +39,7 @@ if [ "${INITIAL_SYNC_STATE_FILENAME}" != "" ]; then
         sleep ${INITIAL_SYNC_STATE_RETRY_INTERVAL_SECONDS:-5}
         echo .
     done
-    rm -f "${STATE_PATH}/${INITIAL_SYNC_STATE_FILENAME}" >/dev/null 2>&1
+    send_metric initial_sync_complete &
 fi
 
 send_metric running &

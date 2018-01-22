@@ -11,8 +11,14 @@ RUN pipenv install --system --deploy --ignore-pipfile && pipenv check
 #RUN pip install -e .
 
 # temporary fix for dpp not returning correct exit code
-# TODO: remove once this PR is merged: https://github.com/frictionlessdata/datapackage-pipelines/pull/107
+# TODO: remove when datapackage-pipelines 1.5.4 is released which should fix this
+# https://github.com/frictionlessdata/datapackage-pipelines/releases
 RUN pip install --upgrade https://github.com/OriHoch/datapackage-pipelines/archive/fix-exit-code.zip
+
+RUN apk --update --no-cache add curl
 
 COPY pipeline-spec.yaml /pipelines
 COPY noise.py /pipelines
+COPY entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

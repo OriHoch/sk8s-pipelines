@@ -8,9 +8,9 @@ run_pipeline() {
     docker rm --force sk8s-pipelines-tests >/dev/null 2>&1
     docker run --rm --name=sk8s-pipelines-tests \
                -v $TEMPDIR:/pipelines/data \
-               -e PIPELINES_SCRIPT="dpp run ./noise" $DOCKER_RUN_ARGS sk8s-pipelines &&\
+               -e PIPELINES_SCRIPT="${PIPELINES_SCRIPT}" $DOCKER_RUN_ARGS sk8s-pipelines &&\
     pushd $TEMPDIR >/dev/null &&\
-    ls -lah "noise/datapackage.json" && ls -lah "noise/noise.csv" &&\
+    eval "${PIPELINES_TEST}" &&\
     popd >/dev/null
     RES=$?
     [ "${1}" == "" ] && sudo rm -rf "${TEMPDIR}"
