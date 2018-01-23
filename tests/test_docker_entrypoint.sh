@@ -95,6 +95,7 @@ test_metrics() {
 }
 
 test_state() {
+    test_title "states should be updated"
     export STATE_TEMPDIR=`mktemp -d`
     (
         run_noise_pipeline "" "-e STATE_PATH=/state
@@ -122,13 +123,42 @@ test_state() {
     [ "${RES}" != "0" ] && exit $RES
 }
 
+test_serve() {
+    test_title "server should be serving"
+    export STATE_TEMPDIR=`mktemp -d`
+    (
+        run_noise_pipeline "" "-e STATE_PATH=/state
+                               -e DONE_STATE_FILENAME=pipelines_complete
+                               -e EXIT_STATE_FILENAME=exit
+                               -e EXIT_STATE_RETRY_INTERVAL_SECONDS=1
+                               -p 5000:5000"
+        RES=$?
+        echo "${RES}" > "${STATE_TEMPDIR}/pipelines_res"
+    ) &
+    sleep 2
+    ! [ -e "${STATE_TEMPDIR}/pipelines_res" ] &&\
+    while ! docker exec sk8s-pipelines-tests bash -c "ls /state/pipelines_complete >/dev/null 2>&1"; do sleep 1; done &&\
+    sleep 2 &&\
+    curl -I http://localhost:5000/ &&\
+    ! [ -e "${STATE_TEMPDIR}/pipelines_res" ] &&\
+    docker exec sk8s-pipelines-tests bash -c "touch /state/exit" &&\
+    while ! [ -e "${STATE_TEMPDIR}/pipelines_res" ]; do sleep 1; done &&\
+    [ $(cat "${STATE_TEMPDIR}/pipelines_res") == "0" ]
+    RES=$?
+    sudo rm -rf "${STATE_TEMPDIR}"
+    docker rm --force sk8s-pipelines-tests >/dev/null 2>&1
+    sleep 2
+    [ "${RES}" != "0" ] && exit $RES
+}
+
 # ensure we have sudo
 sudo true
 
 docker build -t sk8s-pipelines .
-#test_baseline
+test_baseline
 test_metrics
-#test_state
+test_state
+test_serve
 
 echo "Great Success!"
 exit 0

@@ -42,6 +42,14 @@ if [ "${INITIAL_SYNC_STATE_FILENAME}" != "" ]; then
     send_metric initial_sync_complete &
 fi
 
+cd /pipelines
+
+if [ "${ENABLE_SERVE}" != "0" ]; then
+    send_metric start_serve &
+    dpp init
+    dpp serve &
+fi
+
 send_metric running &
 eval "${PIPELINES_SCRIPT}"
 RES=$?
@@ -51,7 +59,7 @@ else
     send_metric failure &
 fi
 if [ "${DONE_STATE_FILENAME}" != "" ]; then
-    echo "Updating done state"
+    echo "Creating done state filename with exit code ${RES}"
     echo "${RES}" > "${STATE_PATH}/${DONE_STATE_FILENAME}"
 fi
 if [ "${EXIT_STATE_FILENAME}" != "" ]; then
