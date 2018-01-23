@@ -2,7 +2,7 @@ language: bash
 sudo: required
 env:
   matrix:
-  - BUILD_PATH=/pwd CLOUDSDK_CORE_PROJECT=uumpa123 PROJECT_NAME=sk8s-pipelines DEPLOY_BRANCH=master DEPLOY_TAGS=true DEPLOY_ENVIRONMENT=_
+  - BUILD_PATH=/pwd CLOUDSDK_CORE_PROJECT=uumpa-public PROJECT_NAME=sk8s-pipelines DEPLOY_BRANCH=master DEPLOY_TAGS=true DEPLOY_ENVIRONMENT=_
   - BUILD_PATH=/pwd/google-storage-sync CLOUDSDK_CORE_PROJECT=uumpa-public PROJECT_NAME=sk8s-google-storage-sync DEPLOY_BRANCH=master DEPLOY_TAGS=true DEPLOY_ENVIRONMENT=_
 services:
 - docker
